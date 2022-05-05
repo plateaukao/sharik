@@ -78,15 +78,6 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
                             ),
                           ),
                         ),
-                        Center(
-                          child: Text(
-                            receiverService.loop.toString(),
-                            style: GoogleFonts.getFont(
-                              context.l.fontComfortaa,
-                              fontSize: 13,
-                            ),
-                          ),
-                        )
                       ],
                     ),
                   ),
@@ -157,9 +148,6 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
                         context,
                         PickNetworkDialog(receiverService.ipService),
                       );
-                      if (receiverService.ipService.selectedInterface != s) {
-                        receiverService.loop = 0;
-                      }
                     }
                   : null,
             ),

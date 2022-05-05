@@ -27,16 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     _history = Hive.box<SharingObject>('history').values.toList();
-    _checkTracking();
 
     super.initState();
-  }
-
-  Future<void> _checkTracking() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (!Hive.box<String>('strings').containsKey('tracking')) {
-      openDialog(context, const TrackingConsentDialog());
-    }
   }
 
   Future<void> _saveLatest() async {
@@ -141,24 +133,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     () => SharikRouter.navigateTo(
                       _globalKey,
                       Screens.languagePicker,
-                      RouteDirection.left,
-                    ),
-                    TransparentButtonBackground.purpleLight,
-                  ),
-                  const SizedBox(width: 2),
-                  TransparentButton(
-                    SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: Icon(
-                        LucideIcons.helpCircle,
-                        color: Colors.deepPurple.shade700,
-                        size: 20,
-                      ),
-                    ),
-                    () => SharikRouter.navigateTo(
-                      _globalKey,
-                      Screens.intro,
                       RouteDirection.left,
                     ),
                     TransparentButtonBackground.purpleLight,
