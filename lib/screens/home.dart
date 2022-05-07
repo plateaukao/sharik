@@ -207,11 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.deepPurple.shade700,
                       ),
                     ),
-                        () => SharikRouter.navigateTo(
-                      _globalKey,
-                      Screens.about,
-                      RouteDirection.right,
-                    ),
+                        () {},
                     TransparentButtonBackground.purpleLight,
                   ),
                 ],
