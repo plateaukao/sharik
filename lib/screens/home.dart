@@ -1,4 +1,6 @@
 
+import 'package:desktop_drop/desktop_drop.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -52,12 +54,46 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  bool _dragging = false;
+
   @override
   Widget build(BuildContext c) {
-    return RepaintBoundary(
-      key: _globalKey,
-      child: Scaffold(
-        body: Column(
+    return DropTarget(
+      onDragDone: (detail) {
+        if (detail.files.isNotEmpty) {
+          print(detail.files.first.path);
+          _handleDroppedFile(detail.files.first);
+        }
+      },
+      onDragEntered: (detail) {
+        setState(() {
+          _dragging = true;
+        });
+      },
+      onDragExited: (detail) {
+        setState(() {
+          _dragging = false;
+        });
+      },
+      child: _mainContentWidget(c),
+    );
+  }
+
+  void _handleDroppedFile(XFile xFile) {
+    final sharingObject = SharingObject(
+        data: xFile.path,
+        type: SharingObjectType.file,
+        name: SharingObject.getSharingName(
+          SharingObjectType.file,
+          xFile.path,),
+    );
+        _shareFile(sharingObject);
+  }
+
+  Widget _mainContentWidget(BuildContext c) => RepaintBoundary(
+    key: _globalKey,
+    child: Scaffold(
+      body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SafeArea(
@@ -129,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         size: 20,
                       ),
                     ),
-                    () => SharikRouter.navigateTo(
+                        () => SharikRouter.navigateTo(
                       _globalKey,
                       Screens.languagePicker,
                       RouteDirection.left,
@@ -147,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         size: 20,
                       ),
                     ),
-                    () => SharikRouter.navigateTo(
+                        () => SharikRouter.navigateTo(
                       _globalKey,
                       Screens.settings,
                       RouteDirection.right,
@@ -171,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.deepPurple.shade700,
                       ),
                     ),
-                    () => SharikRouter.navigateTo(
+                        () => SharikRouter.navigateTo(
                       _globalKey,
                       Screens.about,
                       RouteDirection.right,
@@ -194,7 +230,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-  }
 
   Widget _sharingHistoryList(BuildContext c) {
     return ListView.builder(

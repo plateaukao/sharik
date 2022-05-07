@@ -68,17 +68,16 @@ dependencies:
   # ARCHITECTURE
   provider: ^6.0.1
 
+  desktop_drop: ^0.3.3
+
 dev_dependencies:
   build_runner: ^2.1.7
   hive_generator: ^1.1.2
 
   lint: ^1.8.2
 
-
   change_app_package_name: ^1.0.0
   flutter_native_splash: ^2.1.1
-
-
 
 flutter_native_splash:
   # [Colors.deepPurple.shade400]
