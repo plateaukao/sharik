@@ -93,7 +93,7 @@ class ReceiverService extends ChangeNotifier {
           .get(Uri.parse('http://${addr.ip}:${addr.port}/sharik.json'))
           .timeout(const Duration(seconds: 3));
 
-      print('${addr.ip}:${addr.port}: $result');
+      print('${addr.ip}:${addr.port}: ${result.body}');
       return Receiver.fromJson(addr: addr, json: result.body);
     } catch (error) {
       print('${addr.ip}:${addr.port}: $error');

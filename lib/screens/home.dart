@@ -190,25 +190,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     TransparentButtonBackground.purpleLight,
                   ),
-                  // TransparentButton(
-                  //     SizedBox(
-                  //         height: 20,
-                  //         width: 20,
-                  //         child: Icon(context.watch<ThemeManager>().icon,
-                  //             color: Colors.deepPurple.shade700, size: 20)),
-                  //     () => context.read<ThemeManager>().change(),
-                  //     TransparentButtonBackground.purpleLight),
                   const Spacer(),
-                  TransparentButton(
-                    Text(
-                      'sharik v$currentVersion →',
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 16,
-                        color: Colors.deepPurple.shade700,
-                      ),
+                  Text(
+                    'sharik v$currentVersion',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 16,
+                      color: Colors.deepPurple.shade700,
                     ),
-                        () {},
-                    TransparentButtonBackground.purpleLight,
                   ),
                 ],
               ),
