@@ -42,7 +42,7 @@ class ReceiverService extends ChangeNotifier {
 
       loop++;
       notifyListeners();
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(seconds: 5));
     }
   }
 
@@ -72,9 +72,9 @@ class ReceiverService extends ChangeNotifier {
     for (final ping in futuresPing.entries) {
       final p = await ping.value;
 
-      if (p) {
+       if (p) {
         futuresSharik.add(_hasSharik(ping.key));
-      }
+       }
     }
 
     for (final sharik in futuresSharik) {
@@ -91,10 +91,12 @@ class ReceiverService extends ChangeNotifier {
     try {
       final result = await http
           .get(Uri.parse('http://${addr.ip}:${addr.port}/sharik.json'))
-          .timeout(const Duration(milliseconds: 300));
+          .timeout(const Duration(seconds: 3));
 
+      print('${addr.ip}:${addr.port}: $result');
       return Receiver.fromJson(addr: addr, json: result.body);
-    } catch (_) {
+    } catch (error) {
+      print('${addr.ip}:${addr.port}: $error');
       return null;
     }
   }
@@ -105,11 +107,12 @@ class ReceiverService extends ChangeNotifier {
       final s = await Socket.connect(
         addr.ip,
         addr.port,
-        timeout: const Duration(milliseconds: 200),
+        timeout: const Duration(seconds: 3),
       );
       s.destroy();
+      print('${addr.ip}:${addr.port}: true');
       return true;
-    } catch (_) {
+    } catch (error) {
       return false;
     }
   }

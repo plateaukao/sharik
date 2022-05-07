@@ -11,7 +11,6 @@ import '../conf.dart';
 import '../dialogs/open_dialog.dart';
 import '../dialogs/receive.dart';
 import '../dialogs/send.dart';
-import '../dialogs/tracking_consent.dart';
 import '../logic/sharing_object.dart';
 import '../utils/helper.dart';
 

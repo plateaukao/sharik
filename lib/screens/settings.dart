@@ -8,8 +8,6 @@ import '../components/buttons.dart';
 import '../components/logo.dart';
 import '../components/page_router.dart';
 import '../conf.dart';
-import '../dialogs/open_dialog.dart';
-import '../dialogs/tracking_consent.dart';
 import '../logic/theme.dart';
 import '../utils/helper.dart';
 
@@ -78,8 +76,6 @@ class SettingsScreen extends StatelessWidget {
                         return Column(
                           children: [
                             _appearanceSection(context),
-                            const SizedBox(height: 24),
-                            _privacySection(context),
                           ],
                         );
                       } else {
@@ -87,8 +83,6 @@ class SettingsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(child: _appearanceSection(context)),
-                            const SizedBox(width: 24),
-                            Expanded(child: _privacySection(context)),
                           ],
                         );
                       }
@@ -202,54 +196,6 @@ class SettingsScreen extends StatelessWidget {
                 box.put(blur, val! ? '1' : '0');
               },
               activeColor: Colors.deepPurple.shade300,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _privacySection(BuildContext context) {
-    final box = Hive.box<String>('strings');
-
-    return Column(
-      children: [
-        Text(
-          context.l.settingsPrivacy,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.getFont(
-            context.l.fontComfortaa,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 14),
-        ListTile(
-          hoverColor: context.t.dividerColor.withOpacity(0.04),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          leading: const Icon(LucideIcons.pieChart),
-          onTap: () {
-            openDialog(context, const TrackingConsentDialog());
-          },
-          title: Text(
-            context.l.settingsDisableTracking,
-            style: GoogleFonts.getFont(context.l.fontAndika),
-          ),
-          trailing: StreamBuilder<BoxEvent>(
-            stream: box.watch(key: 'tracking'),
-            initialData: BoxEvent(
-              'tracking',
-              box.get('tracking', defaultValue: '1'),
-              false,
-            ),
-            builder: (context, data) => Switch(
-              value: data.data!.value == '0',
-              activeColor: Colors.deepPurple.shade200,
-              onChanged: (_) {
-                openDialog(context, const TrackingConsentDialog());
-              },
             ),
           ),
         ),

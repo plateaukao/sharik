@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:ackee_dart/ackee_dart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,8 +45,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
       context.read<LanguageManager>().init();
       context.read<ThemeManager>().init();
-
-      _initAnalytics(context);
 
       LicenseRegistry.addLicense(() async* {
         final fonts = ['Andika', 'Comfortaa', 'JetBrains', 'Poppins'];
@@ -223,36 +220,4 @@ Future<void> _receivingIntentListener(GlobalKey key) async {
     );
     return;
   });
-}
-
-void _initAnalytics(BuildContext context) {
-  if (!kReleaseMode) {
-    print('Analytics is disabled since running in the debug mode');
-    return;
-  }
-
-  if (Hive.box<String>('strings').get('tracking', defaultValue: '1') != '1') {
-    print('Analytics is disables by the user');
-    return;
-  }
-
-  startAckee(
-    Uri.parse('https://ackee.mark.vin/api'),
-    '0a143aeb-7105-449f-a2be-ed03b5674e96',
-    Attributes(
-      location: 'https://sharik.app',
-      osName: Platform.operatingSystem,
-      osVersion: Platform.operatingSystemVersion,
-      referrer: source2url(source),
-      screenWidth: MediaQuery.of(context).size.width,
-      screenHeight: MediaQuery.of(context).size.height,
-      browserWidth: MediaQuery.of(context).size.width,
-      browserHeight: MediaQuery.of(context).size.height,
-      browserName: 'Sharik ${context.read<LanguageManager>().language.name}',
-      browserVersion: currentVersion,
-      deviceName: Platform.localHostname,
-      deviceManufacturer: Platform.operatingSystem,
-      language: Localizations.localeOf(context).languageCode,
-    ),
-  );
 }
