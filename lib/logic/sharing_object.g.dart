@@ -6,56 +6,6 @@ part of 'sharing_object.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
-class SharingObjectTypeAdapter extends TypeAdapter<SharingObjectType> {
-  @override
-  final int typeId = 2;
-
-  @override
-  SharingObjectType read(BinaryReader reader) {
-    switch (reader.readByte()) {
-      case 0:
-        return SharingObjectType.file;
-      case 1:
-        return SharingObjectType.text;
-      case 2:
-        return SharingObjectType.app;
-      case 3:
-        return SharingObjectType.unknown;
-      default:
-        return SharingObjectType.file;
-    }
-  }
-
-  @override
-  void write(BinaryWriter writer, SharingObjectType obj) {
-    switch (obj) {
-      case SharingObjectType.file:
-        writer.writeByte(0);
-        break;
-      case SharingObjectType.text:
-        writer.writeByte(1);
-        break;
-      case SharingObjectType.app:
-        writer.writeByte(2);
-        break;
-
-      case SharingObjectType.unknown:
-        writer.writeByte(3);
-        break;
-    }
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SharingObjectTypeAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
 class SharingObjectAdapter extends TypeAdapter<SharingObject> {
   @override
   final int typeId = 1;
@@ -92,6 +42,55 @@ class SharingObjectAdapter extends TypeAdapter<SharingObject> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is SharingObjectAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class SharingObjectTypeAdapter extends TypeAdapter<SharingObjectType> {
+  @override
+  final int typeId = 2;
+
+  @override
+  SharingObjectType read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return SharingObjectType.file;
+      case 1:
+        return SharingObjectType.text;
+      case 2:
+        return SharingObjectType.app;
+      case 3:
+        return SharingObjectType.unknown;
+      default:
+        return SharingObjectType.file;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, SharingObjectType obj) {
+    switch (obj) {
+      case SharingObjectType.file:
+        writer.writeByte(0);
+        break;
+      case SharingObjectType.text:
+        writer.writeByte(1);
+        break;
+      case SharingObjectType.app:
+        writer.writeByte(2);
+        break;
+      case SharingObjectType.unknown:
+        writer.writeByte(3);
+        break;
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SharingObjectTypeAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

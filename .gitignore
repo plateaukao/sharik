@@ -1,4 +1,5 @@
 # Miscellaneous
+android/local.properties
 *.class
 *.log
 *.pyc

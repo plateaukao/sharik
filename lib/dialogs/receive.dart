@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock/wakelock.dart';
@@ -10,6 +11,7 @@ import 'package:wakelock/wakelock.dart';
 import '../components/buttons.dart';
 import '../logic/services/receiver_service.dart';
 import '../logic/sharing_object.dart';
+import '../screens/loading.dart';
 import '../utils/helper.dart';
 import 'open_dialog.dart';
 import 'select_network.dart';
@@ -29,6 +31,15 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
     if (!Platform.isLinux) {
       Wakelock.enable();
     }
+
+    receiverService.addListener(() {
+      if (receiverService.receivers.isNotEmpty) {
+        final address = receiverService.receivers.first.addr;
+        if (senderIpList?.values.contains(address) != true) {
+          senderIpList?.add(address);
+        }
+      }
+    });
 
     super.initState();
   }

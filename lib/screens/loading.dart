@@ -13,6 +13,8 @@ import 'package:widget_to_image/widget_to_image.dart';
 import '../components/page_router.dart';
 import '../conf.dart';
 import '../logic/language.dart';
+import '../logic/services/network_addr.dart';
+import '../logic/services/receiver_service.dart';
 import '../logic/sharing_object.dart';
 import '../logic/theme.dart';
 
@@ -20,6 +22,12 @@ class LoadingScreen extends StatefulWidget {
   @override
   _LoadingScreenState createState() => _LoadingScreenState();
 }
+
+const KEY_STRINGS = 'strings';
+const KEY_HISTORY = 'history';
+const KEY_SENDER_IP_LIST = 'sender_ip_list';
+
+Box<NetworkAddr>? senderIpList;
 
 class _LoadingScreenState extends State<LoadingScreen> {
   final GlobalKey _globalKey = GlobalKey();
@@ -37,11 +45,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
     try {
       Hive.registerAdapter(SharingObjectTypeAdapter());
       Hive.registerAdapter(SharingObjectAdapter());
+      Hive.registerAdapter(NetworkAddrAdapter());
 
       await Hive.initFlutter('sharik_storage');
 
-      await Hive.openBox<String>('strings');
-      await Hive.openBox<SharingObject>('history');
+      await Hive.openBox<String>(KEY_STRINGS);
+      await Hive.openBox<SharingObject>(KEY_HISTORY);
+      senderIpList = await Hive.openBox<NetworkAddr>(KEY_SENDER_IP_LIST);
 
       context.read<LanguageManager>().init();
       context.read<ThemeManager>().init();

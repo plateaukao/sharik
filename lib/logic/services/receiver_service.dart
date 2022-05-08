@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import '../../conf.dart';
+import '../../screens/loading.dart';
 import '../sharing_object.dart';
 import 'ip_service.dart';
+import 'network_addr.dart';
 
 class ReceiverService extends ChangeNotifier {
   final ipService = LocalIpService();
@@ -30,6 +33,18 @@ class ReceiverService extends ChangeNotifier {
     while (true) {
       if (!loaded) {
         return;
+      }
+
+      for (final networkAddr in senderIpList!.values.toList()) {
+        final hasPingSuccessful = await _ping(networkAddr);
+        if (hasPingSuccessful) {
+          final sharikData = await _hasSharik(networkAddr);
+          if (sharikData != null) {
+            receivers.add(sharikData);
+            notifyListeners();
+            return;
+          }
+        }
       }
 
       final res = await compute(_run, ipService.getIp());
@@ -58,7 +73,6 @@ class ReceiverService extends ChangeNotifier {
     ];
 
     final futuresPing = <NetworkAddr, Future<bool>>{};
-
     // todo run first port every time, second every second time, etc
     for (final device in devices) {
       for (final port in ports) {
@@ -67,20 +81,14 @@ class ReceiverService extends ChangeNotifier {
       }
     }
 
-    final futuresSharik = <Future<Receiver?>>[];
-
     for (final ping in futuresPing.entries) {
       final p = await ping.value;
 
-       if (p) {
-        futuresSharik.add(_hasSharik(ping.key));
-       }
-    }
-
-    for (final sharik in futuresSharik) {
-      final r = await sharik;
-      if (r != null) {
-        return r;
+      if (p) {
+        final sharikData = await _hasSharik(ping.key);
+        if (sharikData!= null) {
+          return sharikData;
+        }
       }
     }
 
@@ -118,15 +126,7 @@ class ReceiverService extends ChangeNotifier {
   }
 }
 
-class NetworkAddr {
-  final String ip;
-  final int port;
 
-  const NetworkAddr({
-    required this.ip,
-    required this.port,
-  });
-}
 
 class Receiver {
   final NetworkAddr addr;
