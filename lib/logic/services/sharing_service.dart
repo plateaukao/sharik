@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../conf.dart';
 import '../../const.dart';
@@ -96,6 +97,7 @@ class SharingService extends ChangeNotifier {
       // If we are requesting sharik.json
       if (request.requestedUri.toString().split('/').length == 4 &&
           request.requestedUri.toString().split('/').last == 'sharik.json') {
+
         request.response.headers.contentType =
             ContentType('application', 'json', charset: 'utf-8');
         request.response.write(
@@ -104,6 +106,7 @@ class SharingService extends ChangeNotifier {
             'type': _file.type.toString().split('.').last,
             'name': _file.name,
             'os': Platform.operatingSystem,
+            'deviceName': Hive.box<String>('strings').get(keyDeviceName),
           }),
         );
         request.response.close();

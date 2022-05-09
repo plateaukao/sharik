@@ -144,7 +144,7 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
             subtitle: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Text(
-                '${receivedObject.os}  •  ${receivedObject.addr.ip}:${receivedObject.addr.port}',
+                '${receivedObject.deviceName ?? ''} • ${receivedObject.os} • ${receivedObject.addr.ip}:${receivedObject.addr.port}',
                 style: GoogleFonts.getFont('Andika'),
               ),
             ),

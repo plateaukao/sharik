@@ -80,6 +80,7 @@ class Receiver {
 
   final String os;
   final String name;
+  final String? deviceName;
   final SharingObjectType type;
 
   const Receiver({
@@ -87,6 +88,7 @@ class Receiver {
     required this.os,
     required this.name,
     required this.type,
+    this.deviceName,
   });
 
   factory Receiver.fromJson({required NetworkAddr addr, required String json}) {
@@ -97,6 +99,7 @@ class Receiver {
       os: parsed['os'] as String,
       name: parsed['name'] as String,
       type: string2fileType(parsed['type'] as String),
+      deviceName: parsed['deviceName'] as String?,
     );
   }
 }
