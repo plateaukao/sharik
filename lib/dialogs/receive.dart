@@ -32,15 +32,6 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
       Wakelock.enable();
     }
 
-    receiverService.addListener(() {
-      if (receiverService.receivers.isNotEmpty) {
-        final address = receiverService.receivers.first.addr;
-        if (senderIpList?.values.contains(address) != true) {
-          senderIpList?.add(address);
-        }
-      }
-    });
-
     super.initState();
   }
 

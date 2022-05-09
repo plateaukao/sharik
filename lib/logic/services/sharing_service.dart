@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
 import '../../conf.dart';
+import '../../const.dart';
 import '../../utils/helper.dart';
 import '../sharing_object.dart';
 
@@ -44,17 +46,27 @@ class SharingService extends ChangeNotifier {
     return port;
   }
 
+  Timer? _aliveTimer;
+  Future<Timer> _broadcastAlive(int port) async {
+    final multicastAddress = InternetAddress(broadcastInternetAddress);
+    final rawDatagramSocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+
+    return Timer.periodic(const Duration(seconds: 1), (Timer t) {
+      rawDatagramSocket.send('$port'.codeUnits, multicastAddress, multicastPort);
+    });
+  }
+
   Future<void> start() async {
     _port = await _getPrettyPort();
-
     _server = await HttpServer.bind(InternetAddress.anyIPv4, _port!);
+    _aliveTimer = await _broadcastAlive(_port!);
 
     _serve();
-
     notifyListeners();
   }
 
   Future<void> end() async {
+    _aliveTimer?.cancel();
     await _server!.close(force: true);
 
     if (Platform.isAndroid || Platform.isIOS) {

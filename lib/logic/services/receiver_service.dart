@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import '../../conf.dart';
+import '../../const.dart';
 import '../../screens/loading.dart';
 import '../sharing_object.dart';
 import 'ip_service.dart';
@@ -19,10 +20,11 @@ class ReceiverService extends ChangeNotifier {
   final List<Receiver> receivers = [];
 
   bool loaded = false;
-  int loop = 0;
 
   void kill() {
     loaded = false;
+    _rawDatagramSocket?.close();
+    _rawDatagramSocket = null;
   }
 
   Future<void> init() async {
@@ -30,69 +32,32 @@ class ReceiverService extends ChangeNotifier {
     loaded = true;
     notifyListeners();
 
-    while (true) {
-      if (!loaded) {
-        return;
-      }
+    _rawDatagramSocket = await _listenToBroadcast();
 
-      for (final networkAddr in senderIpList!.values.toList()) {
-        final hasPingSuccessful = await _ping(networkAddr);
-        if (hasPingSuccessful) {
-          final sharikData = await _hasSharik(networkAddr);
-          if (sharikData != null) {
-            receivers.add(sharikData);
-            notifyListeners();
-            return;
-          }
-        }
-      }
-
-      final res = await compute(_run, ipService.getIp());
-      receivers.clear();
-      if (res != null) {
-        receivers.add(res);
-        notifyListeners();
-        return;
-      }
-
-      loop++;
-      notifyListeners();
-      await Future.delayed(const Duration(seconds: 5));
-    }
   }
 
-  static Future<Receiver?> _run(String _ip) async {
-    final _ = _ip.split('.');
-    final thisDevice = int.parse(_.removeLast());
+  RawDatagramSocket? _rawDatagramSocket;
+  Future<RawDatagramSocket> _listenToBroadcast() async {
+    final multicastAddress = InternetAddress(broadcastInternetAddress);
+    final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, multicastPort);
+    socket.joinMulticast(multicastAddress);
 
-    final ip = _.join('.');
+    socket.listen((RawSocketEvent e) async {
+      final datagram = socket.receive();
+      if (datagram == null) return;
 
-    final devices = [
-      for (var e in List.generate(254, (index) => index + 1))
-        if (e != thisDevice) '$ip.$e'
-    ];
-
-    final futuresPing = <NetworkAddr, Future<bool>>{};
-    // todo run first port every time, second every second time, etc
-    for (final device in devices) {
-      for (final port in ports) {
-        final n = NetworkAddr(ip: device, port: port);
-        futuresPing[n] = _ping(n);
+      final message = String.fromCharCodes(datagram.data).trim();
+      final networkAddr = NetworkAddr(ip: datagram.address.address, port: int.parse(message));
+      final sharikData = await _hasSharik(networkAddr);
+      if (sharikData!=null) {
+        receivers.add(sharikData);
+        notifyListeners();
+        _rawDatagramSocket?.close();
+        _rawDatagramSocket = null;
       }
-    }
+    });
 
-    for (final ping in futuresPing.entries) {
-      final p = await ping.value;
-
-      if (p) {
-        final sharikData = await _hasSharik(ping.key);
-        if (sharikData!= null) {
-          return sharikData;
-        }
-      }
-    }
-
-    return null;
+    return socket;
   }
 
   static Future<Receiver?> _hasSharik(NetworkAddr addr) async {
@@ -108,25 +73,7 @@ class ReceiverService extends ChangeNotifier {
       return null;
     }
   }
-
-  // todo check if this works when sharing extra large files
-  static Future<bool> _ping(NetworkAddr addr) async {
-    try {
-      final s = await Socket.connect(
-        addr.ip,
-        addr.port,
-        timeout: const Duration(seconds: 3),
-      );
-      s.destroy();
-      print('${addr.ip}:${addr.port}: true');
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
 }
-
-
 
 class Receiver {
   final NetworkAddr addr;
