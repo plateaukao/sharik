@@ -47,7 +47,7 @@ class SettingsScreen extends StatelessWidget {
                   bottom: false,
                   left: false,
                   right: false,
-                  child: SizedBox(height: 22),
+                  child: SizedBox(height: 12),
                 ),
                 Stack(
                   children: [

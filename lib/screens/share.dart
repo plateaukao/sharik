@@ -109,7 +109,7 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
                   left: false,
                   right: false,
                   child: SizedBox(
-                    height: 22,
+                    height: 12,
                   ),
                 ),
                 Stack(

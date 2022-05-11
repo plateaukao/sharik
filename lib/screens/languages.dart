@@ -43,7 +43,7 @@ class LanguagePickerScreen extends StatelessWidget {
                 left: false,
                 right: false,
                 child: SizedBox(
-                  height: 22,
+                  height: 12,
                 ),
               ),
               Hero(tag: 'icon', child: SharikLogo()),

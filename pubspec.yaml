@@ -4,7 +4,7 @@ homepage: https://github.com/marchellodev/sharik
 repository: https://github.com/marchellodev/sharik
 issue_tracker: https://github.com/marchellodev/sharik/issues
 publish_to: none
-version: 3.5.0+30500
+version: 3.6.0+30600
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -46,13 +46,10 @@ dependencies:
 #  hive: ^2.0.4
   hive_flutter: ^1.1.0
 
-
   intl: ^0.17.0
 
   # todo implement
   receive_sharing_intent: ^1.4.5
-
-
 
   # Android and IOS
   file_picker: ^4.5.1
@@ -73,6 +70,7 @@ dependencies:
 dev_dependencies:
   build_runner: ^2.1.7
   hive_generator: ^1.1.2
+  flutter_gen_runner:
 
   lint: ^1.8.2
 
@@ -90,12 +88,7 @@ flutter:
 
   assets:
     - assets/
-    - assets/slides/
     - assets/flags/
-    - google_fonts/Andika/
-    - google_fonts/Comfortaa/
-    - google_fonts/JetBrains/
-    - google_fonts/Poppins/
     - privacy_policy.md
     - tracking_policy.md
 
