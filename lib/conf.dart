@@ -32,7 +32,7 @@ import 'screens/share.dart';
 const List<int> ports = [50500, 50050];
 
 // only for fetching update
-const String currentVersion = '3.3.0';
+const String currentVersion = '3.5.0';
 const String multipleFilesDelimiter = '|sharik|';
 
 const Sources source = Sources.gitHub;

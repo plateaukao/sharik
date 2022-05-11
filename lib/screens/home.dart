@@ -61,8 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return DropTarget(
       onDragDone: (detail) {
         if (detail.files.isNotEmpty) {
-          print(detail.files.first.path);
-          _handleDroppedFile(detail.files.first);
+          _handleDroppedFile(detail.files);
         }
       },
       onDragEntered: (detail) {
@@ -79,15 +78,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _handleDroppedFile(XFile xFile) {
+  void _handleDroppedFile(List<XFile> xFiles) {
+    // final sharingObject = SharingObject(
+    //     data: xFile.path,
+    //     type: SharingObjectType.file,
+    //     name: SharingObject.getSharingName(
+    //       SharingObjectType.file,
+    //       xFile.path,),
+    // );
+    final pathsString = xFiles.map((f) => f.path).toList().join(multipleFilesDelimiter);
     final sharingObject = SharingObject(
-        data: xFile.path,
+        data: pathsString,
         type: SharingObjectType.file,
-        name: SharingObject.getSharingName(
-          SharingObjectType.file,
-          xFile.path,),
+        name: SharingObject.getSharingName(SharingObjectType.file, pathsString),
     );
-        _shareFile(sharingObject);
+    _shareFile(sharingObject);
   }
 
   Widget _mainContentWidget(BuildContext c) => RepaintBoundary(
