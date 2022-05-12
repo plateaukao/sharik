@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -11,6 +12,7 @@ import '../../conf.dart';
 import '../../const.dart';
 import '../../utils/helper.dart';
 import '../sharing_object.dart';
+import 'network_addr.dart';
 
 class SharingService extends ChangeNotifier {
   final SharingObject _file;
@@ -51,6 +53,17 @@ class SharingService extends ChangeNotifier {
   Future<Timer> _broadcastAlive(int port) async {
     final multicastAddress = InternetAddress(broadcastInternetAddress);
     final rawDatagramSocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+    rawDatagramSocket.listen((event) {
+      final datagram = rawDatagramSocket.receive();
+      if (datagram == null) return;
+
+      final message = String.fromCharCodes(datagram.data).trim();
+      ScaffoldMessenger.of(_context).showSnackBar(
+          SnackBar(
+              content: Text('$message (${datagram.address.address}) got it.'),
+          ),
+      );
+    });
 
     return Timer.periodic(const Duration(seconds: 1), (Timer t) {
       rawDatagramSocket.send('$port'.codeUnits, multicastAddress, multicastPort);

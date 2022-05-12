@@ -50,10 +50,13 @@ class ReceiverService extends ChangeNotifier {
       final networkAddr = NetworkAddr(ip: datagram.address.address, port: int.parse(message));
       final sharikData = await _hasSharik(networkAddr);
       if (sharikData!=null) {
-        receivers.add(sharikData);
-        notifyListeners();
+        final deviceName = Hive.box<String>('strings').get(keyDeviceName);
+        socket.send('$deviceName'.codeUnits, datagram.address, datagram.port);
         _rawDatagramSocket?.close();
         _rawDatagramSocket = null;
+
+        receivers.add(sharikData);
+        notifyListeners();
       }
     });
 
