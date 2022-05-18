@@ -10,7 +10,6 @@ import '../components/page_router.dart';
 import '../conf.dart';
 import '../const.dart';
 import '../dialogs/device_name_edit_dialog.dart';
-import '../dialogs/open_dialog.dart';
 import '../logic/theme.dart';
 import '../utils/helper.dart';
 
@@ -103,8 +102,6 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _appearanceSection(BuildContext context) {
     final box = Hive.box<String>('strings');
-    const transition = 'disable_transition_effects';
-    const blur = 'disable_blur';
 
     return Column(
       children: [
@@ -112,10 +109,6 @@ class SettingsScreen extends StatelessWidget {
         const SizedBox(height: 14),
         _themeItemWidget(context),
         const SizedBox(height: 8),
-        _screenTransitionWidget(context, box, transition),
-        const SizedBox(height: 8),
-        _blurItemWidget(context, box, blur),
-        const SizedBox(height: 14),
         _deviceNameTitle(context),
         const SizedBox(height: 14),
         _deviceNameEdit(context, box),
@@ -144,76 +137,6 @@ class SettingsScreen extends StatelessWidget {
         fontWeight: FontWeight.bold,
       ),
     );
-  }
-
-  ListTile _blurItemWidget(BuildContext context, Box<String> box, String blur) {
-    return ListTile(
-        hoverColor: context.t.dividerColor.withOpacity(0.04),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        leading: const Icon(LucideIcons.palette),
-        onTap: () {
-          box.put(blur, box.get(blur, defaultValue: '0')! == '0' ? '1' : '0');
-        },
-        title: Text(
-          context.l.settingsDisableBlur,
-          style: GoogleFonts.getFont(context.l.fontAndika),
-        ),
-        trailing: StreamBuilder<BoxEvent>(
-          stream: box.watch(key: blur),
-          initialData:
-              BoxEvent(blur, box.get(blur, defaultValue: '0'), false),
-          builder: (_, snapshot) => Checkbox(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-            value: snapshot.data!.value as String == '1',
-            onChanged: (val) {
-              box.put(blur, val! ? '1' : '0');
-            },
-            activeColor: Colors.deepPurple.shade300,
-          ),
-        ),
-      );
-  }
-
-  ListTile _screenTransitionWidget(BuildContext context, Box<String> box, String transition) {
-    return ListTile(
-        hoverColor: context.t.dividerColor.withOpacity(0.04),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        leading: const Icon(LucideIcons.move),
-        onTap: () {
-          box.put(
-            transition,
-            box.get(transition, defaultValue: '0')! == '0' ? '1' : '0',
-          );
-        },
-        title: Text(
-          context.l.settingsDisableScreenTransitions,
-          style: GoogleFonts.getFont(context.l.fontAndika),
-        ),
-        trailing: StreamBuilder<BoxEvent>(
-          stream: box.watch(key: transition),
-          initialData: BoxEvent(
-            transition,
-            box.get(transition, defaultValue: '0'),
-            false,
-          ),
-          builder: (_, snapshot) => Checkbox(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-            ),
-            value: snapshot.data!.value as String == '1',
-            onChanged: (val) {
-              box.put(transition, val! ? '1' : '0');
-            },
-            activeColor: Colors.deepPurple.shade300,
-          ),
-        ),
-      );
   }
 
   ListTile _themeItemWidget(BuildContext context) {

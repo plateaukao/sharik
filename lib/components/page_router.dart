@@ -17,55 +17,11 @@ class SharikRouter extends PageRouteBuilder {
     required this.enterPage,
     required this.direction,
   }) : super(
-          transitionDuration: const Duration(milliseconds: 400),
           pageBuilder: (
             BuildContext context,
             Animation<double> animation,
             Animation<double> secondaryAnimation,
-          ) =>
-              enterPage,
-          transitionsBuilder: (
-            BuildContext context,
-            Animation<double> animation,
-            Animation<double> secondaryAnimation,
-            Widget child,
-          ) =>
-              Stack(
-            children: [
-              SlideTransition(
-                position: Tween<Offset>(
-                  begin: direction == RouteDirection.right
-                      ? Offset.zero
-                      : Offset.zero,
-                  end: direction == RouteDirection.right
-                      ? const Offset(-1.0, 0.0)
-                      : const Offset(1.0, 0.0),
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.fastOutSlowIn,
-                  ),
-                ),
-                child: exitPageImage,
-              ),
-              SlideTransition(
-                position: Tween<Offset>(
-                  begin: direction == RouteDirection.right
-                      ? const Offset(1.0, 0.0)
-                      : const Offset(-1.0, 0.0),
-                  end: direction == RouteDirection.right
-                      ? Offset.zero
-                      : Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.fastOutSlowIn,
-                  ),
-                ),
-                child: child,
-              )
-            ],
-          ),
+          ) => enterPage,
         );
 
   static Future<void> navigateTo(
@@ -74,12 +30,7 @@ class SharikRouter extends PageRouteBuilder {
     RouteDirection direction, [
     Object? args,
   ]) async {
-    final byteData = Hive.box<String>('strings')
-                .get('disable_transition_effects', defaultValue: '0') ==
-            '1'
-        ? ByteData(0)
-        : await WidgetToImage.repaintBoundaryToImage(screenKey);
-    navigateToFromImage(byteData.buffer.asUint8List(), screen, direction, args);
+    navigateToFromImage(ByteData(0).buffer.asUint8List(), screen, direction, args);
   }
 
   static Future<void> navigateToFromImage(
@@ -87,25 +38,14 @@ class SharikRouter extends PageRouteBuilder {
     Screens screen,
     RouteDirection direction, [
     Object? args,
-  ]) async {
-    if (Hive.box<String>('strings')
-            .get('disable_transition_effects', defaultValue: '0') ==
-        '1') {
-      navigatorKey.currentState!.pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => screen2widget(screen, args),
-          transitionDuration: Duration.zero,
-        ),
-      );
-    } else {
-      navigatorKey.currentState!.pushReplacement(
-        SharikRouter(
-          exitPageImage: Image.memory(data),
-          enterPage: screen2widget(screen, args),
-          direction: direction,
-        ),
-      );
-    }
+      ]) async {
+    navigatorKey.currentState!.pushReplacement(
+      SharikRouter(
+        exitPageImage: Image.memory(data),
+        enterPage: screen2widget(screen, args),
+        direction: direction,
+      ),
+    );
   }
 }
 

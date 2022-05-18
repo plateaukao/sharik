@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,9 +32,6 @@ class SharingScreen extends StatefulWidget {
 }
 
 class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
-  late AnimationController _conController;
-  late Animation<double> _conAnimation;
-
   late SharingObject _file;
 
   final LocalIpService _ipService = LocalIpService();
@@ -45,9 +41,6 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _sharingService.end();
-
-    if (_conController.isAnimating) _conController.stop();
 
     if (!Platform.isLinux) {
       Wakelock.disable();
@@ -68,12 +61,6 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
     _sharingService = SharingService(_file, context);
     _sharingService.start();
 
-    _conController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _conAnimation = Tween(begin: 0.0, end: pi).animate(_conController);
-
     if (!Platform.isLinux) {
       Wakelock.enable();
     }
@@ -82,6 +69,7 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
   final _globalKey = GlobalKey();
 
   void _exitPage() {
+    _sharingService.end();
     SharikRouter.navigateTo(_globalKey, Screens.home, RouteDirection.left);
   }
 
@@ -272,27 +260,12 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
               Padding(
                 padding: const EdgeInsets.all(3),
                 child: TransparentButton(
-                  AnimatedBuilder(
-                    animation: _conAnimation,
-                    builder: (context, child) {
-                      return Transform.rotate(
-                        angle: _conAnimation.value,
-                        child: child,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(1),
-                      child: Icon(
-                        LucideIcons.refreshCw,
-                        size: 14,
-                        color: Colors.grey.shade100,
-                      ),
-                    ),
+                  Icon(
+                    LucideIcons.refreshCw,
+                    size: 14,
+                    color: Colors.grey.shade100,
                   ),
-                  () {
-                    _conController.forward(from: 0);
-                    _ipService.load();
-                  },
+                      () => _ipService.load(),
                   TransparentButtonBackground.purpleDark,
                 ),
               ),
@@ -308,17 +281,6 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
 
     return Column(
       children: [
-        Center(
-          child: Text(
-            context.l.sharingOpenInBrowser,
-            style: GoogleFonts.getFont(
-              context.l.fontComfortaa,
-              fontSize: 20,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        const SizedBox(height: 14),
         MultiProvider(
           providers: [
             ChangeNotifierProvider.value(value: _ipService),
@@ -332,6 +294,17 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
                 'http://${_ipService.getIp()}:${_sharingService.port ?? context.l.generalLoading}';
             return Column(
               children: [
+                Center(
+                  child: Text(
+                    _sharingService.receivedInfo ?? context.l.sharingOpenInBrowser,
+                    style: GoogleFonts.getFont(
+                      context.l.fontComfortaa,
+                      fontSize: 20,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 14),
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.deepPurple.shade400,
@@ -459,7 +432,7 @@ class ShareState extends State<SharingScreen> with TickerProviderStateMixin {
             color: Colors.deepPurple.shade300,
           ),
           child: Text(
-            context.l.sharingRecipientNeedsToBeConnected,
+            _sharingService.receivedInfo ?? context.l.sharingRecipientNeedsToBeConnected,
             textAlign: TextAlign.center,
             style: GoogleFonts.getFont(
               context.l.fontAndika,

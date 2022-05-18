@@ -47,17 +47,20 @@ class ReceiverService extends ChangeNotifier {
       if (datagram == null) return;
 
       final message = String.fromCharCodes(datagram.data).trim();
-      final networkAddr = NetworkAddr(ip: datagram.address.address, port: int.parse(message));
-      final sharikData = await _hasSharik(networkAddr);
-      if (sharikData!=null) {
+      if (message.startsWith('http')) {
+        final networkAddr = NetworkAddr(ip: datagram.address.address, port: multicastPort);
+        receivers.add(Receiver(addr: networkAddr, os: 'EinkBro', name: message , type: SharingObjectType.text));
+        notifyListeners();
+      } else {
+        final sharikData = Receiver.fromJson(ip: datagram.address.address, json: message);
         final deviceName = Hive.box<String>('strings').get(keyDeviceName);
         socket.send('$deviceName'.codeUnits, datagram.address, datagram.port);
-        _rawDatagramSocket?.close();
-        _rawDatagramSocket = null;
 
         receivers.add(sharikData);
         notifyListeners();
       }
+      _rawDatagramSocket?.close();
+      _rawDatagramSocket = null;
     });
 
     return socket;
@@ -70,7 +73,7 @@ class ReceiverService extends ChangeNotifier {
           .timeout(const Duration(seconds: 3));
 
       print('${addr.ip}:${addr.port}: ${result.body}');
-      return Receiver.fromJson(addr: addr, json: result.body);
+      return Receiver.fromJson(ip: addr.ip, json: result.body);
     } catch (error) {
       print('${addr.ip}:${addr.port}: $error');
       return null;
@@ -94,11 +97,11 @@ class Receiver {
     this.deviceName,
   });
 
-  factory Receiver.fromJson({required NetworkAddr addr, required String json}) {
+  factory Receiver.fromJson({required String ip, required String json}) {
     final parsed = jsonDecode(json);
 
     return Receiver(
-      addr: addr,
+      addr: NetworkAddr(ip: ip, port: parsed['port'] as int),
       os: parsed['os'] as String,
       name: parsed['name'] as String,
       type: string2fileType(parsed['type'] as String),

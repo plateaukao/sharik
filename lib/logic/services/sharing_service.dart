@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -12,17 +11,20 @@ import '../../conf.dart';
 import '../../const.dart';
 import '../../utils/helper.dart';
 import '../sharing_object.dart';
-import 'network_addr.dart';
 
 class SharingService extends ChangeNotifier {
   final SharingObject _file;
   int? _port;
   HttpServer? _server;
   final BuildContext _context;
+  Timer? _aliveTimer;
 
   int? get port => _port;
 
   bool get running => _port != null;
+
+  String? _receivedInfo;
+  String? get receivedInfo => _receivedInfo;
 
   SharingService(this._file, this._context);
 
@@ -49,7 +51,6 @@ class SharingService extends ChangeNotifier {
     return port;
   }
 
-  Timer? _aliveTimer;
   Future<Timer> _broadcastAlive(int port) async {
     final multicastAddress = InternetAddress(broadcastInternetAddress);
     final rawDatagramSocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
@@ -58,15 +59,14 @@ class SharingService extends ChangeNotifier {
       if (datagram == null) return;
 
       final message = String.fromCharCodes(datagram.data).trim();
-      ScaffoldMessenger.of(_context).showSnackBar(
-          SnackBar(
-              content: Text('$message (${datagram.address.address}) got it.'),
-          ),
-      );
+      _receivedInfo = '$message (${datagram.address.address}) got it.';
+      notifyListeners();
     });
 
+    // send out sharik json string
+    final jsonString = _createSharikJsonString(port);
     return Timer.periodic(const Duration(seconds: 1), (Timer t) {
-      rawDatagramSocket.send('$port'.codeUnits, multicastAddress, multicastPort);
+      rawDatagramSocket.send(jsonString.codeUnits, multicastAddress, multicastPort);
     });
   }
 
@@ -81,7 +81,9 @@ class SharingService extends ChangeNotifier {
 
   Future<void> end() async {
     _aliveTimer?.cancel();
+    _aliveTimer = null;
     await _server!.close(force: true);
+    _server = null;
 
     if (Platform.isAndroid || Platform.isIOS) {
       FilePicker.platform.clearTemporaryFiles();
@@ -94,134 +96,144 @@ class SharingService extends ChangeNotifier {
     }
 
     await for (final request in _server!) {
-      // If we are requesting favicon.ico
-      if (request.requestedUri.toString().split('/').length == 4 &&
-          request.requestedUri.toString().split('/').last == 'favicon.ico') {
-        request.response.headers.contentType =
-            ContentType('image', 'x-icon', charset: 'utf-8');
-
-        final favicon = await rootBundle.load('assets/favicon.ico');
-
-        request.response.add(favicon.buffer.asUint8List());
-        request.response.close();
+      if (_isFaviconUrl(request)) {
+        await _serveFavicon(request);
         continue;
       }
 
-      // If we are requesting sharik.json
-      if (request.requestedUri.toString().split('/').length == 4 &&
-          request.requestedUri.toString().split('/').last == 'sharik.json') {
-
-        request.response.headers.contentType =
-            ContentType('application', 'json', charset: 'utf-8');
-        request.response.write(
-          jsonEncode({
-            'sharik': currentVersion,
-            'type': _file.type.toString().split('.').last,
-            'name': _file.name,
-            'os': Platform.operatingSystem,
-            'deviceName': Hive.box<String>('strings').get(keyDeviceName),
-          }),
-        );
-        request.response.close();
-        continue;
-      }
-
-      // If we are sharing text
       if (_file.type == SharingObjectType.text) {
-        request.response.headers.contentType =
-            ContentType('text', 'plain', charset: 'utf-8');
-        request.response.write(_file.data);
-        request.response.close();
+        _serveText(request);
         continue;
       }
 
-      // If we are sharing only one file that is not a folder
-      if (!_file.data.contains(multipleFilesDelimiter) &&
-          FileSystemEntity.typeSync(_file.data) !=
-              FileSystemEntityType.directory) {
-        final f = File(_file.data);
-        final size = await f.length();
-
-        _pipeFile(
-          request,
-          f,
-          size,
-          _file.type == SharingObjectType.file
-              ? _file.name
-              : '${_file.name}.apk',
-        );
+      if (_isSingleFile()) {
+        await _serveSingleFile(request);
         continue;
       }
 
-      // All other cases
+      await _serveOtherCases(request);
+    }
+  }
 
-      final fileList = _file.data.split(multipleFilesDelimiter);
+  Future<void> _serveOtherCases(HttpRequest request) async {
+    final fileList = _file.data.split(multipleFilesDelimiter);
 
-      final requestedFilePath = request.requestedUri.queryParameters['q'] ?? '';
-      File? file;
-      int? size;
-      var isDir = false;
+    final requestedFilePath = request.requestedUri.queryParameters['q'] ?? '';
+    File? file;
+    int? size;
+    var isDir = false;
 
-      // if the file is requested
-      if (requestedFilePath.isNotEmpty) {
-        isDir = await FileSystemEntity.type(requestedFilePath) ==
-            FileSystemEntityType.directory;
-        // todo is that secure enough?
-        if (!fileList.contains(requestedFilePath)) {
-          // checking if the path belongs to a shared folder
-          var isInsideAFolder = false;
-          for (final el in fileList) {
-            if (requestedFilePath.contains(el)) {
-              isInsideAFolder = true;
-            }
-          }
-
-          if (!isInsideAFolder) {
-            print('NO ACCESS!!!');
-            continue;
+    // if the file is requested
+    if (requestedFilePath.isNotEmpty) {
+      isDir = await FileSystemEntity.type(requestedFilePath) ==
+          FileSystemEntityType.directory;
+      // todo is that secure enough?
+      if (!fileList.contains(requestedFilePath)) {
+        // checking if the path belongs to a shared folder
+        var isInsideAFolder = false;
+        for (final el in fileList) {
+          if (requestedFilePath.contains(el)) {
+            isInsideAFolder = true;
           }
         }
 
-        if (!isDir) {
-          file = File(requestedFilePath);
-          size = await file.length();
+        if (!isInsideAFolder) {
+          print('NO ACCESS!!!');
+          return ;
         }
       }
 
-      // We are sharing multiple files
-      // Serving an entry html page or the folder page
-      if (requestedFilePath.isEmpty || isDir) {
-        final _fileList = isDir
-            ? Directory(requestedFilePath)
-                .listSync()
-                .map((e) => e.path)
-                .toList()
-            : fileList;
-
-        final displayFiles = Map.fromEntries(
-          _fileList.map(
-            (e) => MapEntry(
-              e,
-              FileSystemEntity.typeSync(e) != FileSystemEntityType.directory,
-            ),
-          ),
-        );
-
-        request.response.headers.contentType =
-            ContentType('text', 'html', charset: 'utf-8');
-        request.response
-            .write(_buildHTML(displayFiles, _context.l.shareDownloadAllButton));
-        request.response.close();
-        // Serving the files
-      } else {
-        _pipeFile(
-          request,
-          file,
-          size,
-          requestedFilePath.split(Platform.pathSeparator).last,
-        );
+      if (!isDir) {
+        file = File(requestedFilePath);
+        size = await file.length();
       }
     }
+
+    // We are sharing multiple files
+    // Serving an entry html page or the folder page
+    if (requestedFilePath.isEmpty || isDir) {
+      final _fileList = isDir
+          ? Directory(requestedFilePath)
+              .listSync()
+              .map((e) => e.path)
+              .toList()
+          : fileList;
+
+      final displayFiles = Map.fromEntries(
+        _fileList.map(
+          (e) => MapEntry(
+            e,
+            FileSystemEntity.typeSync(e) != FileSystemEntityType.directory,
+          ),
+        ),
+      );
+
+      request.response.headers.contentType =
+          ContentType('text', 'html', charset: 'utf-8');
+      request.response
+          .write(_buildHTML(displayFiles, _context.l.shareDownloadAllButton));
+      request.response.close();
+      // Serving the files
+    } else {
+      _pipeFile(
+        request,
+        file,
+        size,
+        requestedFilePath.split(Platform.pathSeparator).last,
+      );
+    }
+  }
+
+  bool _isSingleFile() {
+    return !_file.data.contains(multipleFilesDelimiter) &&
+        FileSystemEntity.typeSync(_file.data) != FileSystemEntityType.directory;
+  }
+
+  bool _isFaviconUrl(HttpRequest request) {
+    return request.requestedUri.toString().split('/').length == 4 &&
+        request.requestedUri.toString().split('/').last == 'favicon.ico';
+  }
+
+  Future<void> _serveSingleFile(HttpRequest request) async {
+    final f = File(_file.data);
+    final size = await f.length();
+
+    _pipeFile(
+      request,
+      f,
+      size,
+      _file.type == SharingObjectType.file
+          ? _file.name
+          : '${_file.name}.apk',
+    );
+  }
+
+  void _serveText(HttpRequest request) {
+    request.response.headers.contentType =
+        ContentType('text', 'plain', charset: 'utf-8');
+    request.response.write(_file.data);
+    request.response.close();
+  }
+
+  String _createSharikJsonString(int port) {
+    return jsonEncode({
+      'sharik': currentVersion,
+      'type': _file.type.toString().split('.').last,
+      'name': _file.name,
+      'os': Platform.operatingSystem,
+      'port': port,
+      'deviceName': Hive.box<String>('strings').get(keyDeviceName),
+    });
+  }
+
+  Future<void> _serveFavicon(HttpRequest request) async {
+    request.response.headers.contentType =
+        ContentType('image', 'x-icon', charset: 'utf-8');
+
+    final favicon = await rootBundle.load('assets/favicon.ico');
+
+    request.response.add(favicon.buffer.asUint8List());
+    request.response.close();
   }
 }
 
