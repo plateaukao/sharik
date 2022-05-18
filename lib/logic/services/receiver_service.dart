@@ -53,31 +53,17 @@ class ReceiverService extends ChangeNotifier {
         notifyListeners();
       } else {
         final sharikData = Receiver.fromJson(ip: datagram.address.address, json: message);
-        final deviceName = Hive.box<String>('strings').get(keyDeviceName);
-        socket.send('$deviceName'.codeUnits, datagram.address, datagram.port);
-
         receivers.add(sharikData);
         notifyListeners();
+
+        final deviceName = Hive.box<String>('strings').get(keyDeviceName);
+        socket.send('$deviceName'.codeUnits, datagram.address, datagram.port);
       }
       _rawDatagramSocket?.close();
       _rawDatagramSocket = null;
     });
 
     return socket;
-  }
-
-  static Future<Receiver?> _hasSharik(NetworkAddr addr) async {
-    try {
-      final result = await http
-          .get(Uri.parse('http://${addr.ip}:${addr.port}/sharik.json'))
-          .timeout(const Duration(seconds: 3));
-
-      print('${addr.ip}:${addr.port}: ${result.body}');
-      return Receiver.fromJson(ip: addr.ip, json: result.body);
-    } catch (error) {
-      print('${addr.ip}:${addr.port}: $error');
-      return null;
-    }
   }
 }
 
