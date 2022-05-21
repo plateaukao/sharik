@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/widgets.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../conf.dart';
 
 part 'sharing_object.g.dart';
@@ -126,7 +126,8 @@ class SharingObject {
         throw Exception('when type is app, name is necessary');
       case SharingObjectType.unknown:
         throw Exception(
-            'Unknown type is reserved only for backwards compatability');
+            'Unknown type is reserved only for backwards compatability',
+        );
     }
   }
 }

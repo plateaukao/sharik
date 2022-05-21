@@ -105,7 +105,8 @@ List<Language> get languageList => [
           name: 'arabic',
           nameLocal: 'العربية',
           locale: const Locale('ar'),
-          localizations: AppLocalizationsAr()),
+          localizations: AppLocalizationsAr(),
+      ),
       Language(
         // 300+ million
         name: 'french',

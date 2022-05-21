@@ -4,11 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:http/http.dart' as http;
 
-import '../../conf.dart';
 import '../../const.dart';
-import '../../screens/loading.dart';
 import '../sharing_object.dart';
 import 'ip_service.dart';
 import 'network_addr.dart';
@@ -84,7 +81,7 @@ class Receiver {
   });
 
   factory Receiver.fromJson({required String ip, required String json}) {
-    final parsed = jsonDecode(json);
+    final parsed = jsonDecode(json) as Map<String, dynamic>;
 
     return Receiver(
       addr: NetworkAddr(ip: ip, port: parsed['port'] as int),

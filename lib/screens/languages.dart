@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -109,12 +108,6 @@ class LanguageButton extends StatelessWidget {
         height: 80,
         onClick: _onClick,
         text: _language.nameLocal,
-        secondaryIcon: Opacity(
-          opacity: 0.4,
-          child: SvgPicture.asset(
-            'assets/flags/${_language.name}.svg',
-          ),
-        ),
         font: _language.localizations.fontAndika,
       );
 }

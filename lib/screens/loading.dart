@@ -8,12 +8,10 @@ import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
-import 'package:widget_to_image/widget_to_image.dart';
 
 import '../components/page_router.dart';
 import '../conf.dart';
 import '../logic/language.dart';
-import '../logic/services/network_addr.dart';
 import '../logic/sharing_object.dart';
 import '../logic/theme.dart';
 
@@ -137,9 +135,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
       SharikRouter.navigateTo(
         _globalKey,
-        Hive.box<String>('strings').containsKey('language')
-            ? Screens.home
-            : Screens.languagePicker,
+        Screens.home,
         RouteDirection.right,
       );
     } catch (error, trace) {
@@ -172,19 +168,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
 }
 
 Future<void> _receivingIntentListener(GlobalKey key) async {
-  final byteData = Hive.box<String>('strings')
-              .get('disable_transition_effects', defaultValue: '0') ==
-          '1'
-      ? Uint8List(0)
-      : (await WidgetToImage.repaintBoundaryToImage(key)).buffer.asUint8List();
-
   final files = ReceiveSharingIntent.getMediaStream();
   final texts = ReceiveSharingIntent.getTextStream();
 
   files.listen((sharedFile) {
     if (sharedFile.length > 1) {
       SharikRouter.navigateToFromImage(
-        byteData,
+        Uint8List(0),
         Screens.error,
         RouteDirection.right,
         'Sorry, you can only share 1 file at a time',
@@ -194,7 +184,7 @@ Future<void> _receivingIntentListener(GlobalKey key) async {
 
     if (sharedFile.isNotEmpty) {
       SharikRouter.navigateToFromImage(
-        byteData,
+        Uint8List(0),
         Screens.sharing,
         RouteDirection.right,
         SharingObject(
@@ -211,7 +201,7 @@ Future<void> _receivingIntentListener(GlobalKey key) async {
 
   texts.listen((sharedText) {
     SharikRouter.navigateToFromImage(
-      byteData,
+      Uint8List(0),
       Screens.sharing,
       RouteDirection.right,
       SharingObject(

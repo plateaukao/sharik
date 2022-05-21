@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:widget_to_image/widget_to_image.dart';
 
 import '../conf.dart';
 import '../main.dart';

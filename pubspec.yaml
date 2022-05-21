@@ -24,18 +24,12 @@ dependencies:
 
   flutter_svg: ^1.0.3
   google_fonts: ^2.3.1
-  intro_slider: ^3.0.3
   responsive_framework: ^0.1.7
 
   qr_flutter: ^4.0.0
-  flutter_markdown: ^0.6.9
 
   # todo linux support
   wakelock: ^0.6.1+2
-
-  widget_to_image:
-    git: https://github.com/marchellodev/widget_to_image.git
-
 
   # UTILS
   http: ^0.13.4

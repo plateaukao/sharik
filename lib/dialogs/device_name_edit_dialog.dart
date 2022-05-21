@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../components/buttons.dart';
-import '../logic/sharing_object.dart';
 import '../utils/helper.dart';
 
 // review: done

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock/wakelock.dart';
@@ -11,7 +10,6 @@ import 'package:wakelock/wakelock.dart';
 import '../components/buttons.dart';
 import '../logic/services/receiver_service.dart';
 import '../logic/sharing_object.dart';
-import '../screens/loading.dart';
 import '../utils/helper.dart';
 import 'open_dialog.dart';
 import 'select_network.dart';
@@ -84,7 +82,6 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
         context.l.sharingNetworkInterfaces,
         receiverService.loaded
             ? () async {
-          final s = receiverService.ipService.selectedInterface;
           await openDialog(
             context,
             PickNetworkDialog(receiverService.ipService),
@@ -158,7 +155,7 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
     switch(receiver.type) {
       case SharingObjectType.text:
         if (name.startsWith('http')) {
-          launch(name);
+          launchUrl(Uri.parse(name));
         } else {
           Clipboard.setData(ClipboardData(text: name));
           ScaffoldMessenger.of(context).showSnackBar(
@@ -168,7 +165,7 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
         Navigator.of(context).pop();
         break;
       default:
-        launch('http://${receiver.addr.ip}:${receiver.addr.port}');
+        launchUrl(Uri.parse('http://${receiver.addr.ip}:${receiver.addr.port}'));
     }
   }
 
