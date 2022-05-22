@@ -82,7 +82,5 @@ flutter:
 
   assets:
     - assets/
-    - assets/flags/
     - privacy_policy.md
-    - tracking_policy.md
 

@@ -56,7 +56,7 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
           insetPadding: const EdgeInsets.all(24),
           title: _titleWidget(context),
           content: receiverService.receivers.isEmpty
-              ? _loadingWidget(context)
+              ? const Text('receiving...')
               : _mainWidget(context),
           actions: [
             _networkInterfaceButton(context),
@@ -155,7 +155,7 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
     switch(receiver.type) {
       case SharingObjectType.text:
         if (name.startsWith('http')) {
-          launchUrl(Uri.parse(name));
+          launchUrl(Uri.parse(name), mode: LaunchMode.externalApplication);
         } else {
           Clipboard.setData(ClipboardData(text: name));
           ScaffoldMessenger.of(context).showSnackBar(
@@ -165,7 +165,7 @@ class _ReceiverDialogState extends State<ReceiverDialog> {
         Navigator.of(context).pop();
         break;
       default:
-        launchUrl(Uri.parse('http://${receiver.addr.ip}:${receiver.addr.port}'));
+        launchUrl(Uri.parse('http://${receiver.addr.ip}:${receiver.addr.port}'), mode: LaunchMode.externalApplication);
     }
   }
 
