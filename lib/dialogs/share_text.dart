@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../components/buttons.dart';
 import '../logic/sharing_object.dart';
@@ -14,6 +16,7 @@ class ShareTextDialog extends StatefulWidget {
 
 class _ShareTextDialogState extends State<ShareTextDialog> {
   String text = '';
+  final TextEditingController _controller = TextEditingController();
 
   // todo cancel instead close
   @override
@@ -21,15 +24,31 @@ class _ShareTextDialogState extends State<ShareTextDialog> {
     return AlertDialog(
       elevation: 0,
       insetPadding: const EdgeInsets.all(24),
-      title: Text(
-        context.l.homeSelectTextTypeSomeText,
-        style: GoogleFonts.getFont(
-          context.l.fontComfortaa,
-          fontWeight: FontWeight.w700,
-        ),
+      title: Row(
+        children: [
+          Text(
+            context.l.homeSelectTextTypeSomeText,
+            style: GoogleFonts.getFont(
+              context.l.fontComfortaa,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.clipboard),
+            onPressed: () {
+              Clipboard.getData('text/plain').then((data) {
+                setState(() {
+                  _controller.text = data?.text ?? '';
+                  text = _controller.text;
+                });
+              });
+            },
+          ),
+        ],
       ),
       scrollable: true,
       content: TextField(
+        controller: _controller,
         autofocus: true,
         maxLines: null,
         minLines: 2,
